@@ -43,7 +43,7 @@ def dir_walk(root_dir):
                 fullname = os.path.relpath(os.path.join(root, name), root_dir)
                 # playlist = os.path.basename(os.path.dirname(fullname))
                 split_dir = split_path(fullname)
-                mp3_folder = b'__'.join(split_dir[0:-1])
+                mp3_folder = b'__'.join(split_dir)
                 if mp3_folder not in all_mp3:
                     all_mp3[mp3_folder] = list()
 
@@ -56,9 +56,7 @@ def dir_walk(root_dir):
 
 
 def sort_mp3_by_name(all_mp3):
-    for key, mp3_folder in all_mp3.items():
-        playlist = sorted(mp3_folder)
-        all_mp3[key] = playlist
+    all_mp3 = dict(sorted(all_mp3.items()))
 
     return all_mp3
 
