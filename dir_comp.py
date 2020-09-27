@@ -93,8 +93,16 @@ def compare_file_size(root_A, root_B, A, B):
     count = 0
     for key, file_item in A.items():
         if key in B:
-            size_A = os.stat(os.path.join(root_A, file_item.name)).st_size
-            size_B = os.stat(os.path.join(root_B, file_item.name)).st_size
+            full_file_A = os.path.join(root_A, file_item.name)
+            full_file_B = os.path.join(root_B, file_item.name)
+            if not os.path.isfile(full_file_A):
+                print(b"ERROR - cannot open: " + full_file_A)
+                continue
+            if not os.path.isfile(full_file_B):
+                print(b"ERROR - cannot open: " + full_file_B)
+                continue
+            size_A = os.stat(full_file_A).st_size
+            size_B = os.stat(full_file_B).st_size
             if size_A != size_B:
                 count += 1
                 print(b"filesize different:" + file_item.name)
