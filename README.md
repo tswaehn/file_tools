@@ -6,6 +6,11 @@
 * `fat32_copy_mp3_sorted` ... copy all __*.mp3__ files from folder __A__ to folder __B__ in alphabetical order (some MP3-Players play their files in FAT order, because they cannot sort internally -- this is my workaround)
 * `m3u_gen` ... create playlist files __*.m3u__ for all folders given. sort files in each playlist in alphabetical order
 
+#### required python packages
+* argparse
+* hashlib
+* pathlib
+
 #### usage: dir_comp
 ```
 $ python dir_comp.py -h
