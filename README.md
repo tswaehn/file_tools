@@ -13,7 +13,7 @@
 
 #### usage: dir_comp
 ```
-$ python dir_comp.py -h
+$ python3 dir_comp.py -h
 usage: dir_comp.py [-h] [-f] A B
 
 Compare two directories based on defined criteria - report differences.
@@ -28,7 +28,7 @@ optional arguments:
 ```
 #### usage: find_any
 ```
-$ python find_any.py -h
+$ python3 find_any.py -h
 usage: find_any.py [-h] SRC DST
 
 Try to find all SRC files SOMEWHERE in DEST - report differences.
@@ -42,13 +42,26 @@ optional arguments:
 
 ```
 #### usage: fat32_copy_mp3_sorted
+```
+python3 fat32_copy_mp3_sorted.py -h
+usage: fat32_copy_mp3_sorted.py [-h] SRC DST
 
-T.B.D
+Copy mp3 files in alphabetical order (needed by some mp3 players to play songs
+in correct order).
+
+positional arguments:
+  SRC         source path of mp3 (recursive folder structure)
+  DST         destination path where all files incl. structure are copied in
+              alphabetical order
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
 
 #### usage: m3u_gen
 
 ```
-$ python m3u_gen.py -h
+$ python3 m3u_gen.py -h
 usage: m3u_gen.py [-h] FOLDER OUTPUT
 
 Create m3u playlists from mp3 folders.
