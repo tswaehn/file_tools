@@ -1,20 +1,28 @@
+#!/usr/bin/python3
+
 import argparse
 import os
 from datetime import datetime
 from shutil import copyfile
 import subprocess
 
-parser = argparse.ArgumentParser(description='Backup SOURCE into TARGET.', prefix_chars='-')
+parser = argparse.ArgumentParser(description='Backup SOURCE into TARGET. Uses date + time stamps and triggers TAR archive tool.', prefix_chars='-')
 parser.add_argument('root', metavar='SOURCE', type=str, help='source directory for all files')
 parser.add_argument('target', metavar='TARGET', type=str, help='target directory for backup')
+parser.add_argument('-incremental', help='incremental backup', default=False, dest='do_incremental', action='store_true')
 
 args = parser.parse_args()
 
 args_root = args.root.encode("UTF-8")
 args_target = args.target.encode("UTF-8")
+args_incremental = args.do_incremental
 
 print(b'Source directory is ' + args_root)
 print(b'Target backup directory is ' + args_target)
+if args_incremental:
+    print(b"trying to run incremental backup")
+else:
+    print(b"trying to run full backup")
 
 
 if not os.path.exists(args_root):
@@ -26,7 +34,7 @@ if not os.path.exists(args_target):
     exit(-1)
 
 
-def run_backup(src, target, incremental=1):
+def run_backup(src, target, incremental=False):
 
     # prepare filename string
     src_dir_str = str(src.decode("UTF-8")).replace("/", "_").encode("UTF-8")
@@ -40,6 +48,15 @@ def run_backup(src, target, incremental=1):
     backup_dir = os.path.join(target, date_str)
     backup_file = os.path.join(backup_dir, time_str + src_dir_str)
 
+    if incremental:
+        level_0 = b''
+        backup_file += b"_incremental_"
+        print(b"doing incremental backup")
+    else:
+        level_0 = b"--level=0"
+        backup_file += b"_full_"
+        print(b"doing full backup")
+
     # prepare file names
     log_file = backup_file + b".log"
     err_file = backup_file + b".error.log"
@@ -47,13 +64,6 @@ def run_backup(src, target, incremental=1):
     incremental_file_cp = backup_file + b".incremental.copy.txt"
     archive_file = backup_file + b".tar.gz"
     file_list = backup_file + b".filelist.txt"
-
-    if incremental:
-        level_0 = b''
-        print(b"doing incremental backup")
-    else:
-        level_0 = b"--level=0"
-        print(b"doing full backup")
 
     #
     cmd_line = [b"tar"]
@@ -71,7 +81,7 @@ def run_backup(src, target, incremental=1):
     # create archive
     print("START Archive")
     with open(log_file, "wb") as log_out, open(err_file, "wb") as err_log:
-        output = subprocess.run(cmd_line, stdout=log_out, stderr=err_log)
+        output = subprocess.run(cmd_line, stdout=log_out, stderr=err_log, text=True)
     if not output.returncode == 0:
         print("error: create archive failed")
         return
@@ -91,7 +101,7 @@ def run_backup(src, target, incremental=1):
     return
 
 
-run_backup(args_root, args_target, incremental=0)
+run_backup(args_root, args_target, incremental=args_incremental)
 
 print("BYE")
 exit(0)
