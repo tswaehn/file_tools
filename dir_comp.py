@@ -1,20 +1,30 @@
+#!/usr/bin/python3
 import argparse
 import os
+import hashlib
 
 
 parser = argparse.ArgumentParser(description='Compare two directories based on defined criteria - report differences.', prefix_chars='-')
 parser.add_argument('root_A', metavar='A', type=str, help='path A')
 parser.add_argument('root_B', metavar='B', type=str, help='path B')
 parser.add_argument('-f', help='compare filesize', default=False, dest='boolean_switch', action='store_true')
+parser.add_argument('-b', help='compare binary content', default=False, dest='binary_compare_switch', action='store_true')
 
 args = parser.parse_args()
 
 args_root_A = args.root_A.encode("UTF-8")
 args_root_B = args.root_B.encode("UTF-8")
 args_comp_filesize = args.boolean_switch
+args_comp_binary = args.binary_compare_switch
 
 print(b'compare [' + args_root_A + b']')
 print(b'compare [' + args_root_B + b']')
+
+if args_comp_filesize:
+    print("compare filesize = enabled")
+
+if args_comp_binary:
+    print("compare binaray = enabled")
 
 
 class FileItem:
@@ -89,7 +99,7 @@ def find_new_files(A, B):
 
 def compare_file_size(root_A, root_B, A, B):
 
-    print("- - - cecking for same file sizes - - -")
+    print("- - - checking for same file sizes - - -")
     count = 0
     for key, file_item in A.items():
         if key in B:
@@ -117,6 +127,52 @@ def compare_file_size(root_A, root_B, A, B):
     return
 
 
+def get_file_fingerprint(filename, fingerprint_len):
+    fingerprint = b'none'
+    with open(filename, "rb") as f:
+        bytes = f.read(fingerprint_len)
+        m = hashlib.md5()
+        m.update(bytes)
+        # return bytearray
+        fingerprint = m.hexdigest().encode('UTF-8')
+
+    return fingerprint
+
+
+def compare_binary(root_A, root_B, A, B):
+
+    print("- - - checking for same binary content - - -")
+    count = 0
+    for key, file_item in A.items():
+        if key in B:
+            full_file_A = os.path.join(root_A, file_item.name)
+            full_file_B = os.path.join(root_B, file_item.name)
+            if not os.path.isfile(full_file_A):
+                print(b"ERROR - cannot open: " + full_file_A)
+                continue
+            if not os.path.isfile(full_file_B):
+                print(b"ERROR - cannot open: " + full_file_B)
+                continue
+            size_A = os.stat(full_file_A).st_size
+            fingerprint_A = get_file_fingerprint(full_file_A, size_A)
+
+            size_B = os.stat(full_file_B).st_size
+            fingerprint_B = get_file_fingerprint(full_file_B, size_B)
+
+            if fingerprint_A != fingerprint_B:
+                count += 1
+                print(b"binary content different:" + file_item.name)
+
+    print("- - - S U M M A R Y - - -")
+
+    if count == 0:
+        print("folders identical")
+    else:
+        print("total file count with content differences: " + str(count))
+
+    return
+
+
 files_A = dir_walk(args_root_A)
 files_B = dir_walk(args_root_B)
 
@@ -124,5 +180,8 @@ find_new_files(files_A, files_B)
 
 if args_comp_filesize:
     compare_file_size(args_root_A, args_root_B, files_A, files_B)
+
+if args_comp_binary:
+    compare_binary(args_root_A, args_root_B, files_A, files_B)
 
 exit(0)
